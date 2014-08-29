@@ -6,7 +6,7 @@ import optparse
 import os
 
 usage_line = """
-homology_hit_parsing.py
+homology_BESThit_parsing.py
 
 Version 1.0 (28 August, 2014)
 License: GNU GPLv2
@@ -50,11 +50,10 @@ options, args = parser.parse_args()
 ## command: blast_formatter -outfmt "6 sseqid qseqid" -archive <blast_archive> -out <output.tsv>
 
 def convert():
-	outfmt = "6 sseqid qseqid"
 	print "\n***Converting one-way target to reference blast archive***\n"
-	os.system("""blast_formatter -outfmt "6 sseqid qseqid" -archive """+options.oneway+""" -out one-way_best_hits.tsv""") 
+	os.system("""blast_formatter -max_target_seq 1 -outfmt "6 sseqid qseqid evalue" -archive """+options.oneway+""" -out one-way_best_hits.tsv""") 
 	print "\n***Converting reciprocal reference to target blast archive***\n"
-	os.system("""blast_formatter -outfmt "6 sseqid qseqid" -archive """+options.reciprocal+""" -out reciprocal_best_hits.tsv""") 
+	os.system("""blast_formatter -max_target_seq 1 -outfmt "6 sseqid qseqid evalue" -archive """+options.reciprocal+""" -out reciprocal_best_hits.tsv""") 
 
 
 #################################################
