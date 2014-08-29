@@ -58,7 +58,7 @@ def rbh_in():
 			print(total, end='\r')
 			bar = foo.split()										## Split by tabs
 			denovo = bar[0]											## de novo transcriptome ID
-			ensembl = bar[1]										## blast match Ensembl ID
+			ensembl = bar[1]+"_rbh"										## blast match Ensembl ID
 			if denovo not in annotation_dict.keys():				## If de novo ID not already in keys
 				annotation_dict[denovo] = ensembl					## Put de novo id as key and ensembl id as value
 		
@@ -78,7 +78,7 @@ def oneway_in():
 			print(total, end='\r')
 			bar = foo.split()										## Split by tabs
 			denovo = bar[0]											## de novo transcriptome ID
-			ensembl = bar[1]
+			ensembl = bar[1]+"_one"
 			if denovo not in annotation_dict.keys():				## If de novo ID not already in keys
 				annotation_dict[denovo] = ensembl					## Put de novo id as key and ensembl id as value
 
