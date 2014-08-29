@@ -67,10 +67,10 @@ def makedb():
 def blast():
 	print "\n***Blasting "+options.targen+" query against "+options.refgen+" database***"
 	os.system(options.blast+" -outfmt 11 -evalue "+options.evalue+" -db "+options.reference+ \
-	" -query "+options.target+" -out db-"+options.refgen+"_TO_qry-"+options.targen+".out.asn")
+	" -query "+options.target+" -out db-"+options.refgen+"_TO_qry-"+options.targen+"_e"+options.evalue+".out.asn")
 	print "\n***Blasting "+options.refgen+" query against "+options.targen+" database***\n"
 	os.system(options.blast+" -outfmt 11 -evalue "+options.evalue+" -db "+options.target+ \
-	" -query "+options.reference+" -out db-"+options.targen+"_TO_qry-"+options.refgen+".out.asn")
+	" -query "+options.reference+" -out db-"+options.targen+"_TO_qry-"+options.refgen+"_e"+options.evalue+".out.asn")
 
 #################################################
 ###           		Main function             ###
