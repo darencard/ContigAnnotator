@@ -1,4 +1,3 @@
-1. Add options for up to 3 rbh and 3 one-way hit blast outputs in annotation dictionary creation.
-2. Add option to rank blast outputs by confidence for annotation dictionary creation.
-3. Add script to perform non-best hit reciprocal analyses for homology.
-4. Possibly switch blast steps over to BioPython blast module if it provides spead (unlikely) or functionality.
+1. Add script to perform non-best hit reciprocal analyses for homology.
+2. Possibly switch blast steps over to BioPython blast module if it provides spead (unlikely) or functionality.
+3. Allow user to enter blast ID/description so that annotation will include the type of blast analysis that indicates the homology (e.g., rbh, one-way, reciprocal hits, etc.).
