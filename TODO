@@ -1,4 +1,5 @@
 #Updated: 29 August, 2014
 1. Add script to perform non-best hit reciprocal analyses for homology.
-2. Possibly switch blast steps over to BioPython blast module if it provides spead (unlikely) or functionality.
+2. Possibly switch blast steps over to BioPython blast module if it provides speed (unlikely) or functionality.
 3. Allow user to enter blast ID/description so that annotation will include the type of blast analysis that indicates the homology (e.g., rbh, one-way, reciprocal hits, etc.).
+4. Split blasting up to be run in parallel and recombine results if it speeds up process significantly. See http://www.ruffus.org.uk/examples/bioinformatics/index.html.
