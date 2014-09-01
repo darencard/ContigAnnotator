@@ -1,6 +1,6 @@
 #!/usr/local/env python
 
-#print(__name__
+#print __name__
 
 import optparse
 import os
@@ -39,6 +39,7 @@ parser.add_option("-e", action = "store", type = "string", dest = "evalue", help
 parser.add_option("--reference", action = "store", type = "string", dest = "refgen", help = "reference name or ID")
 parser.add_option("--target", action = "store", type = "string", dest = "targen", help = "target name or ID")
 parser.add_option("--run", action = "store", type = "string", dest = "run", help = "processes to run (1-2)", default = "12")
+parser.add_option("--threads", action = "store", type = "string", dest = "threads", help = "the number of threads blast will use", default = "2")
 
 options, args = parser.parse_args()
 
@@ -66,10 +67,10 @@ def makedb():
 
 def blast():
 	print "\n***Blasting "+options.targen+" query against "+options.refgen+" database***"
-	os.system(options.blast+" -outfmt 11 -evalue "+options.evalue+" -db "+options.reference+ \
+	os.system(options.blast+" -num_threads "+options.threads+" -outfmt 11 -evalue "+options.evalue+" -db "+options.reference+ \
 	" -query "+options.target+" -out db-"+options.refgen+"_TO_qry-"+options.targen+"_e"+options.evalue+".out.asn")
 	print "\n***Blasting "+options.refgen+" query against "+options.targen+" database***\n"
-	os.system(options.blast+" -outfmt 11 -evalue "+options.evalue+" -db "+options.target+ \
+	os.system(options.blast+" -num_threads "+options.threads+" -outfmt 11 -evalue "+options.evalue+" -db "+options.target+ \
 	" -query "+options.reference+" -out db-"+options.targen+"_TO_qry-"+options.refgen+"_e"+options.evalue+".out.asn")
 
 #################################################
