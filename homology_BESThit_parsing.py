@@ -51,9 +51,9 @@ options, args = parser.parse_args()
 
 def convert():
 	print "\n***Converting one-way target to reference blast archive***\n"
-	os.system("""blast_formatter -max_target_seq 1 -outfmt "6 sseqid qseqid evalue" -archive """+options.oneway+""" -out one-way_best_hits.tsv""") 
+	os.system("""blast_formatter -max_target_seqs 1 -outfmt "6 sseqid qseqid evalue" -archive """+options.oneway+""" -out one-way_best_hits.tsv""") 
 	print "\n***Converting reciprocal reference to target blast archive***\n"
-	os.system("""blast_formatter -max_target_seq 1 -outfmt "6 sseqid qseqid evalue" -archive """+options.reciprocal+""" -out reciprocal_best_hits.tsv""") 
+	os.system("""blast_formatter -max_target_seqs 1 -outfmt "6 sseqid qseqid evalue" -archive """+options.reciprocal+""" -out reciprocal_best_hits.tsv""") 
 
 
 #################################################
