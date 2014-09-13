@@ -67,7 +67,7 @@ def r1_in():
 			print(total, end='\r')
 			bar = foo.split()										## Split by tabs
 			denovo = bar[0]											## de novo transcriptome ID
-			ensembl = bar[1]+"_rbh1_"+bar[2]							## blast match Ensembl ID
+			ensembl = bar[1]+"_rbh1"								## blast match Ensembl ID
 			if denovo not in annotation_dict.keys():				## If de novo ID not already in keys
 				annotation_dict[denovo] = ensembl					## Put de novo id as key and ensembl id as value
 
@@ -82,7 +82,7 @@ def r2_in():
 			print(total, end='\r')
 			bar = foo.split()										## Split by tabs
 			denovo = bar[0]											## de novo transcriptome ID
-			ensembl = bar[1]+"_rbh2_"+bar[2]							## blast match Ensembl ID
+			ensembl = bar[1]+"_rbh2"								## blast match Ensembl ID
 			if denovo not in annotation_dict.keys():				## If de novo ID not already in keys
 				annotation_dict[denovo] = ensembl					## Put de novo id as key and ensembl id as value
 				
@@ -97,7 +97,7 @@ def r3_in():
 			print(total, end='\r')
 			bar = foo.split()										## Split by tabs
 			denovo = bar[0]											## de novo transcriptome ID
-			ensembl = bar[1]+"_rbh3_"+bar[2]							## blast match Ensembl ID
+			ensembl = bar[1]+"_rbh3"								## blast match Ensembl ID
 			if denovo not in annotation_dict.keys():				## If de novo ID not already in keys
 				annotation_dict[denovo] = ensembl					## Put de novo id as key and ensembl id as value
 		
