@@ -67,7 +67,7 @@ def oneway():
 	for foo in open("one-way_best_hits.tsv").read().splitlines():
 		bar = foo.split()
 		subjectID = bar[0]
-		queryID = bar[0]
+		queryID = bar[1]
 		if subjectID not in oneway_dict.keys():
 			oneway_dict[subjectID] = queryID
 			
@@ -83,7 +83,7 @@ def reciprocal():
 	for foo in open("reciprocal_best_hits.tsv").read().splitlines():
 		bar = foo.split()
 		subjectID = bar[0]
-		queryID = bar[0]
+		queryID = bar[1]
 		if subjectID not in reciprocal_dict.keys():
 			reciprocal_dict[subjectID] = queryID
 			
