@@ -141,7 +141,7 @@ def run_rnammer():
 ###   Create Annotation Database and Report   ###
 #################################################
 	
-def load_sqlite()
+def load_sqlite():
 	os.system("""wget "http://sourceforge.net/projects/trinotate/files/TRINOTATE_RESOURCES/20140708/Trinotate.20140708.swissTrEMBL.sqlite.gz/download" -O """+options.output+""".sqlite.gz""")
 	os.system("gunzip "+options.output+".sqlite.gz")
 	os.system("Trinotate "+options.output+".sqlite init --gene_trans_map "+options.trinity+".gene_trans_map --transcript_fasta "+options.trinity+" --transdecoder_pep "+options.trinity+".transdecoder.pep")
