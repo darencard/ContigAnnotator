@@ -59,15 +59,15 @@ options, args = parser.parse_args()
 #################################################
 
 def prepare_databases():
-	if options.swissprot == True:
+	while options.swissprot == True:
 		os.system("wget http://sourceforge.net/projects/trinotate/files/TRINOTATE_RESOURCES/20140708/uniprot_sprot.fasta.gz -P ./databases/")
 		os.system("gunzip ./databases/uniprot_sprot.fasta.gz")
 		os.system("makeblastdb -in ./databases/uniprot_sprot.fasta -dbtype prot")
-	elif options.pfam == True:
+	while options.pfam == True:
 		os.system("wget http://sourceforge.net/projects/trinotate/files/TRINOTATE_RESOURCES/20140708/Pfam-A.hmm.gz -P ./databases/")
 		os.system("gunzip ./databases/Pfam-A.hmm.gz")
 		os.system("hmmpress ./databases/Pfam-A.hmm")
-	elif options.uniref == True:
+	while options.uniref == True:
 		os.system("wget http://sourceforge.net/projects/trinotate/files/TRINOTATE_RESOURCES/20140708/uniref90.fasta.gz -P ./databases/")
 		os.system("gunzip ./databases/uniref90.fasta.gz")
 		os.system("makeblastdb -in ./databases/uniref90.fasta -dbtype prot")
@@ -92,11 +92,11 @@ def trinity_prepare():
 
 def run_blast(directory):
 	if options.swissprot == True:
-		os.system("blastx -query "+options.trinity+" -db "+directory+"/uniprot_sprot.fasta -num_threads "+options.threads+" -max_target_seqs 1 -outfmt 6 > uniprot.blastx.outfmt6")
-		os.system("blastp -query "+options.trinity+".transdecoder.pep -db "+directory+"/uniprot_sprot.fasta -num_threads "+options.threads+" -max_target_seqs 1 -outfmt 6 > uniprot.blastp.outfmt6")
+		os.system("blastx -query "+options.trinity+" -db "+directory+"/uniprot_sprot.fasta -num_threads "+options.threads+" -max_target_seqs 1 -outfmt 6 > "+options.trinity+".uniprot.blastx.outfmt6")
+		os.system("blastp -query "+options.trinity+".transdecoder.pep -db "+directory+"/uniprot_sprot.fasta -num_threads "+options.threads+" -max_target_seqs 1 -outfmt 6 > "+options.trinity+".uniprot.blastp.outfmt6")
 	if options.uniref == True:
-		os.system("blastx -query "+options.trinity+" -db "+directory+"/uniref90.fasta -num_threads "+options.threads+" -max_target_seqs 1 -outfmt 6 > uniref90.blastx.outfmt6")
-		os.system("blastp -query "+options.trinity+".transdecoder.pep -db "+directory+"/uniref90.fasta -num_threads "+options.threads+" -max_target_seqs 1 -outfmt 6 > uniref90.blastp.outfmt6")
+		os.system("blastx -query "+options.trinity+" -db "+directory+"/uniref90.fasta -num_threads "+options.threads+" -max_target_seqs 1 -outfmt 6 > "+options.trinity+".uniref90.blastx.outfmt6")
+		os.system("blastp -query "+options.trinity+".transdecoder.pep -db "+directory+"/uniref90.fasta -num_threads "+options.threads+" -max_target_seqs 1 -outfmt 6 > "+options.trinity+".uniref90.blastp.outfmt6")
 
 
 
@@ -106,7 +106,7 @@ def run_blast(directory):
 		
 def run_hmmer(directory):
 	if options.pfam == True:
-		os.system("hmmscan --cpu "+options.threads+"--domtblout TrinotatePFAM.out "+directory+"/Pfam-A.hmm "+options.trinity+".trnasdecoder.pep > pfam.log")
+		os.system("hmmscan --cpu "+options.threads+"--domtblout "+options.trinity+".TrinotatePFAM.out "+directory+"/Pfam-A.hmm "+options.trinity+".trnasdecoder.pep > pfam.log")
 
 
 
@@ -115,7 +115,7 @@ def run_hmmer(directory):
 #################################################
 		
 def run_signalp():
-	os.system("signalp -f short -n signalp.out "+options.trinity+".transdecoder.pep")
+	os.system("signalp -f short -n "+options.trinity+".signalp.out "+options.trinity+".transdecoder.pep")
 
 
 
@@ -124,7 +124,7 @@ def run_signalp():
 #################################################
 	
 def run_tmhmm():
-	os.system("tmhmm --short < "+options.trinity+".transdecoder.pep > tmhmm.out")
+	os.system("tmhmm --short < "+options.trinity+".transdecoder.pep > "+options.trinity+".tmhmm.out")
 
 
 
@@ -146,14 +146,14 @@ def load_sqlite():
 	os.system("gunzip "+options.output+".sqlite.gz")
 	os.system("Trinotate "+options.output+".sqlite init --gene_trans_map "+options.trinity+".gene_trans_map --transcript_fasta "+options.trinity+" --transdecoder_pep "+options.trinity+".transdecoder.pep")
 	if options.swissprot == True:
-		os.system("Trinotate "+options.output+".sqlite LOAD_swissprot_blastp uniprot.blastp.outfmt6")
-		os.system("Trinotate "+options.output+".sqlite LOAD_swissprot_blastx uniprot.blastx.outfmt6")
+		os.system("Trinotate "+options.output+".sqlite LOAD_swissprot_blastp "+options.trinity+".uniprot.blastp.outfmt6")
+		os.system("Trinotate "+options.output+".sqlite LOAD_swissprot_blastx "+options.trinity+".uniprot.blastx.outfmt6")
 	if options.uniref == True:
-		os.system("Trinotate "+options.output+".sqlite LOAD_trembl_blastp uniref90.blastp.outfmt6")
-		os.system("Trinotate "+options.output+".sqlite LOAD_trembl_blastx uniref90.blastx.outfmt6")
-	os.system("Trinotate "+options.output+".sqlite LOAD_pfam TrinotatePFAM.out")
-	os.system("Trinotate "+options.output+".sqlite LOAD_tmhmm tmhmm.out")
-	os.system("Trinotate "+options.output+".sqlite LOAD_signalp signalp.out")
+		os.system("Trinotate "+options.output+".sqlite LOAD_trembl_blastp "+options.trinity+".uniref90.blastp.outfmt6")
+		os.system("Trinotate "+options.output+".sqlite LOAD_trembl_blastx "+options.trinity+".uniref90.blastx.outfmt6")
+	os.system("Trinotate "+options.output+".sqlite LOAD_pfam "+options.trinity+".TrinotatePFAM.out")
+	os.system("Trinotate "+options.output+".sqlite LOAD_tmhmm "+options.trinity+".tmhmm.out")
+	os.system("Trinotate "+options.output+".sqlite LOAD_signalp "+options.trinity+".signalp.out")
 	os.system("Trinotate "+options.output+".sqlite LOAD_rnammer "+options.trinity+".rnammer.gff")
 	os.system("Trinotate "+options.output+".sqlite report > "+options.trinity+".report.xls")
 
