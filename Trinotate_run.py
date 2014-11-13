@@ -59,20 +59,18 @@ options, args = parser.parse_args()
 #################################################
 
 def prepare_databases():
-	while options.swissprot == True:
+	if options.swissprot == True:
 		os.system("wget http://sourceforge.net/projects/trinotate/files/TRINOTATE_RESOURCES/20140708/uniprot_sprot.fasta.gz -P ./databases/")
 		os.system("gunzip ./databases/uniprot_sprot.fasta.gz")
 		os.system("makeblastdb -in ./databases/uniprot_sprot.fasta -dbtype prot")
-	while options.pfam == True:
+	if options.pfam == True:
 		os.system("wget http://sourceforge.net/projects/trinotate/files/TRINOTATE_RESOURCES/20140708/Pfam-A.hmm.gz -P ./databases/")
 		os.system("gunzip ./databases/Pfam-A.hmm.gz")
 		os.system("hmmpress ./databases/Pfam-A.hmm")
-	while options.uniref == True:
+	if options.uniref == True:
 		os.system("wget http://sourceforge.net/projects/trinotate/files/TRINOTATE_RESOURCES/20140708/uniref90.fasta.gz -P ./databases/")
 		os.system("gunzip ./databases/uniref90.fasta.gz")
 		os.system("makeblastdb -in ./databases/uniref90.fasta -dbtype prot")
-	else:
-		print "\n***Error: specify one or more annotation databases to use!***\n"
 
 
 
