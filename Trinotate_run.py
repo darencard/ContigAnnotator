@@ -62,15 +62,15 @@ def prepare_databases():
 	if options.swissprot == True:
 		os.system("wget http://sourceforge.net/projects/trinotate/files/TRINOTATE_RESOURCES/20140708/uniprot_sprot.fasta.gz -P ./databases/")
 		os.system("gunzip ./databases/uniprot_sprot.fasta.gz")
-		os.system("makeblastdb -in uniprot_sprot.fasta -dbtype prot")
+		os.system("makeblastdb -in ./databases/uniprot_sprot.fasta -dbtype prot")
 	elif options.pfam == True:
 		os.system("wget http://sourceforge.net/projects/trinotate/files/TRINOTATE_RESOURCES/20140708/Pfam-A.hmm.gz -P ./databases/")
 		os.system("gunzip ./databases/Pfam-A.hmm.gz")
-		os.system("hmmpress Pfam-A.hmm")
+		os.system("hmmpress ./databases/Pfam-A.hmm")
 	elif options.uniref == True:
 		os.system("wget http://sourceforge.net/projects/trinotate/files/TRINOTATE_RESOURCES/20140708/uniref90.fasta.gz -P ./databases/")
 		os.system("gunzip ./databases/uniref90.fasta.gz")
-		os.system("makeblastdb -in uniref90.fasta -dbtype prot")
+		os.system("makeblastdb -in ./databases/uniref90.fasta -dbtype prot")
 	else:
 		print "\n***Error: specify one or more annotation databases to use!***\n"
 
