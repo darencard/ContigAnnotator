@@ -104,7 +104,7 @@ def run_blast(directory):
 		
 def run_hmmer(directory):
 	if options.pfam == True:
-		os.system("hmmscan --cpu "+options.threads+"--domtblout "+options.trinity+".TrinotatePFAM.out "+directory+"/Pfam-A.hmm "+options.trinity+".trnasdecoder.pep > pfam.log")
+		os.system("hmmscan --cpu "+options.threads+"--domtblout "+options.trinity+".TrinotatePFAM.out "+directory+"/Pfam-A.hmm "+options.trinity+".transdecoder.pep > pfam.log")
 
 
 
