@@ -1,0 +1,193 @@
+#!/usr/bin/env zsh
+
+usage()
+{
+cat << EOF
+orthorbb
+
+Version 1.0 (12 October, 2016)
+License: GNU GPLv2
+To report bugs or errors, please contact Daren Card (dcard@uta.edu).
+This script is provided as-is, with no support and no guarantee of proper or
+desirable functioning.
+
+This script infers homology between a query set of sequences and a reference set of
+sequences. It is designed to annotate new protein annotation from programs like Maker.
+User supplies protein and transcript sequences for a query (target) and for a reference
+(in fasta format), and some relevent settings for the underlying BLAST searches. Only the 
+query proteins are annotated, either with orthologous sequence IDs from a reference protein 
+set (inferred using reciprocal best blastp or stringent one-way best blastp to proteins) or 
+from a reference transcript set (inferred using reciprocal best tblastn/blastx to transcripts).
+Proteins are first annotated using reciprocal best blastp, followed by reciprocal best
+tblastn/blastx and, finally, stringent one-way blastp. Output files contain relevent
+information about how homology was inferred and a summary of the annotation is also output.
+
+orthorbb -p <query_proteins> -x <query_transcripts> -a <reference_proteins>
+         -n <reference_transcripts> -q <query_name> -r <reference_name> [ -e <e-value>
+	 -t <threads> -h ]
+
+OPTIONS:
+        -h		usage information and help (this message)
+        -p		query protein sequences to be annotated
+	-x		query transcript sequences to be used in annotation
+	-a		reference protein sequences to be used in annotation
+	-n		reference transcript sequences to be used in annotation
+        -q		name of query sample (for output file naming)
+	-r		name of reference sample (for output file naming)
+	-e		e-value to be used to filter BLAST hits [0.001]
+	-t		number of computer threads to use in BLAST [1]
+EOF
+}
+
+EVAL=0.001
+THREAD=1
+
+while getopts "hp:x:a:n:q:r:e:t:" OPTION
+do
+        case $OPTION in
+                help)
+                        usage
+                        exit 1
+                        ;;
+		p)
+			QPROT=$OPTARG
+			;;
+		x)
+			QTX=$OPTARG
+			;;
+		a)
+			RPROT=$OPTARG
+			;;
+		n)
+			RTX=$OPTARG
+			;;
+		q)
+			QRY=$OPTARG
+			;;
+		r)
+			REF=$OPTARG
+			;;
+		e)
+			EVAL=$OPTARG
+			;;
+		t)
+			THREAD=$OPTARG
+			;;
+		?)
+			usage
+			exit
+			;;
+	esac
+done
+
+echo $QPROT $QTX $RPOT $RTX $QRY $REF $EVAL $THREAD
+
+if [[ -z $QPROT ]] || [[ -z $QTX ]] || [[ -z $RPROT ]] || [[ -z $RTX ]] || [[ -z $QRY ]] || [[ -z $REF ]]
+then
+	usage
+	exit 1
+fi
+
+echo $1 $2 $3 $4 $5 $6 $7 $8 $9 $10 $11 $12 $13 $14 $15 $16
+
+echo -e "\n###############################\nCreating BLAST Databases\n###############################\n"
+# don't parse sequence IDs
+cmd="makeblastdb -dbtype prot -in $QPROT"
+eval $cmd
+cmd="makeblastdb -dbtype prot -in $RPROT"
+eval $cmd
+cmd="makeblastdb -dbtype nucl -in $QTX"
+eval $cmd
+cmd="makeblastdb -dbtype nucl -in $RTX"
+eval $cmd
+
+echo -e "\n###############################\nRunning BLASTP Searches\n###############################\n"
+# one-way and reciprocal blastp
+cmd="blastp -num_threads $THREAD -max_target_seqs 10 -evalue $EVAL -outfmt 11 \
+-db $RPROT -query $QPROT -out "qry-"$QRY"_2_ref-"$REF"_blastp_e"$EVAL".out.asn""
+eval $cmd
+
+cmd="blastp -num_threads $THREAD -max_target_seqs 10 -evalue $EVAL -outfmt 11 \
+-db $QPROT -query $RPROT -out "qry-"$REF"_2_ref-"$QRY"_blastp_e"$EVAL".out.asn""
+eval $cmd
+
+echo -e "\n###############################\nSummaryizing BLASTP Searches\n###############################\n"
+# take top hit for each query sequence from both blastp searches
+cmd="blast_formatter -max_target_seqs 1 -outfmt 6 -archive "qry-"$QRY"_2_ref-"$REF"_blastp_e"$EVAL".out.asn" \
+-out "qry-"$QRY"_2_ref-"$REF"_blastp_e"$EVAL".top1hits.tsv""
+eval $cmd
+cmd="blast_formatter -max_target_seqs 1 -outfmt 6 -archive "qry-"$REF"_2_ref-"$QRY"_blastp_e"$EVAL".out.asn" \
+-out "qry-"$REF"_2_ref-"$QRY"_blastp_e"$EVAL".top1hits.tsv""
+eval $cmd
+
+# RELIABILITY RANK = 1: deduce which protein hits show up in both datasets (i.e., are reciprocal best blast hits), and provide some context
+cmd="cat <(cat "qry-"$REF"_2_ref-"$QRY"_blastp_e"$EVAL".top1hits.tsv" | awk '{ print \$2\"\\t\"\$1 }' | sort | uniq) \
+<(cat "qry-"$QRY"_2_ref-"$REF"_blastp_e"$EVAL".top1hits.tsv" | awk '{ print \$1\"\\t\"\$2 }' | sort | uniq) | \
+sort -k1,1 | uniq -d | awk '{ print \$1\"\\t\"\$2\"\tRBB\tproteins-proteins\tblastp-blastp\t$EVAL\" }' \
+> $QRY"_"$REF"_RBB.blastp-blastp.e"$EVAL".tsv""
+eval $cmd
+
+# RELIABILITY RANK = 3: deduce which stringent protein hits exist in reference (i.e., one-way best hits), and provide some context
+cmd="cat "qry-"$QRY"_2_ref-"$REF"_blastp_e"$EVAL".top1hits.tsv" | cut -f 1,2 | uniq | \
+awk '{ print \$1\"\\t\"\$2\"\tONEWAY\tproteins-proteins\tblastp\t$EVAL\" }' | sort -k1,1 \
+> $QRY"_"$REF"_ONEWAY.blastp.e"$EVAL".tsv""
+eval $cmd
+
+echo -e "\n###############################\nRunning TBLASTN/BLASTX Searches\n###############################\n"
+# one-way and reciprocal tblastn/blastx
+# query sequence							reference database
+# protein sequence				  ----------->		6-way translated nucleotide sequences
+#						    tblastn
+# 6-way translated nucleotide sequences		  ----------->		protein sequences
+#						    blastx
+cmd="tblastn -num_threads $THREAD -max_target_seqs 20 -evalue $EVAL -outfmt 11 \
+-db $RTX -query $QPROT -out "qry-"$QRY"_2_ref-"$REF"_tblastn_e"$EVAL".out.asn""
+eval $cmd
+cmd="blastx -num_threads $THREAD -max_target_seqs 20 -evalue $EVAL -outfmt 11 \
+-db $QPROT -query $RTX -out "qry-"$REF"_2_ref-"$QRY"_blastx_e"$EVAL".out.asn""
+eval $cmd
+
+echo -e "\n###############################\nSummarizing TBLASTN/BLASTX Searches\n###############################\n"
+# take top hit for each query sequence from tblastn and blastx searches
+cmd="blast_formatter -max_target_seqs 1 -outfmt 6 -archive "qry-"$QRY"_2_ref-"$REF"_tblastn_e"$EVAL".out.asn" \
+-out "qry-"$QRY"_2_ref-"$REF"_tblastn_e"$EVAL".top1hits.tsv""
+eval $cmd
+cmd="blast_formatter -max_target_seqs 1 -outfmt 6 -archive "qry-"$REF"_2_ref-"$QRY"_blastx_e"$EVAL".out.asn" \
+-out "qry-"$REF"_2_ref-"$QRY"_blastx_e"$EVAL".top1hits.tsv""
+eval $cmd
+
+# RELIABILITY RANK = 3: deduce which nucleotide hits show up in both datasets (i.e., are reciprocal best blast hits), and provide some context
+cmd="cat <(cat "qry-"$REF"_2_ref-"$QRY"_blastx_e"$EVAL".top1hits.tsv" | awk '{ print \$2\"\\t\"\$1 }' | sort | uniq) \
+<(cat "qry-"$QRY"_2_ref-"$REF"_tblastn_e"$EVAL".top1hits.tsv" | awk '{ print \$1\"\\t\"\$2 }' | sort | uniq) | \
+sort -k1,1 | uniq -d | awk '{ print \$1\"\\t\"\$2\"\tRBB\tproteins-transcripts\ttblastn-blastx\t$EVAL\" }' \
+> $QRY"_"$REF"_RBB.tblastn-blastx.e"$EVAL".tsv""
+eval $cmd
+
+echo -e "\n###############################\nSummarizing all BLAST Information\n###############################\n"
+# finally, lets put these together, avoiding redundancy and prioritizing based on reliability of inference of orthology (RBB protein > RBB transcript > ONEWAY protein)
+# command dissection:
+##  two files are concatenated together, sorted by first column (-k1,1), and then unique lines based on the first column are kept (first column corresponds to query annotation IDs)
+##  importantly, the order in which the files are read in the 'cat' command dictates which type of hit is kept when the unique rows (based on first column) are selected
+##  therefore, we put the RBB protein first and the RBB transcript second, and whenever they overlap in a query annotation ID, the RBB protein hit is taken
+##  we do this inside a nested shell ("<(cat....), such that the output of that process is directed into a second 'cat' command, which does the same thing as described above
+##  this has the effect or prioritizing the results in the order we want, without redundancy in the query annotation IDs, giving us our final inference of homology with detailed information on our confidence in that inference
+cmd="cat <(cat $QRY"_"$REF"_RBB.blastp-blastp.e"$EVAL".tsv" $QRY"_"$REF"_RBB.tblastn-blastx.e"$EVAL".tsv" | sort -u -k1,1) \
+$QRY"_"$REF"_ONEWAY.blastp.e"$EVAL".tsv" | sort -u -k1,1 > $QRY"_"$REF"_homology_annotation.tsv""
+eval $cmd
+
+# using context provided in output file, we can summarize how proteins were annotated using the reference
+cmd="cat <(cat $QRY"_"$REF"_homology_annotation.tsv" | \
+awk '{ if (\$3 == \"RBB\" && \$4 == \"proteins-proteins\") count1 += 1 } \
+{ if (\$3 == \"RBB\" && \$4 == \"proteins-transcripts\") count2 += 1 } \
+{ if (\$3 == \"ONEWAY\" && \$4 == \"proteins-proteins\") count3 += 1 } END \
+{ print \"RBB proteins to proteins = \"count1\
+\"\nRBB proteins to transcripts = \"count2\
+\"\nONEWAY proteins to proteins = \"count3\
+\"\nTotal annotated = \"count1+count2+count3 }') \
+<(grep -c \"^>\" $QPROT | awk '{ print \"Total input sequences = \"\$1 }') \
+> $QRY"_"$REF"_homology_annotation_summary.txt""
+eval $cmd
+
+echo -e "\n###############################\nAnalysis Completed\n\
+Final annotations can be found in $QRY"_"$REF"_homology_annotation.tsv"\n\
+A summary can be found in $QRY"_"$REF"_homology_annotation_summary.txt"\n###############################\n"
