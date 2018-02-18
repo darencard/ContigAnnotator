@@ -93,12 +93,12 @@ eval $cmd
 
 echo -e "\n###############################\nRunning BLASTP Searches\n###############################\n"
 # one-way and reciprocal blastp
-cmd="blastp -num_threads $THREAD -max_target_seqs 10 -evalue $EVAL -outfmt 11 \
+cmd="blastp -num_threads $THREAD -max_target_seqs 10 -evalue $REVAL -outfmt 11 \
 -db $RPROT -query $QPROT -out "qry-"$QRY"_2_ref-"$REF"_blastp_e"$REVAL".out.asn""
 # echo $cmd
 eval $cmd
 
-cmd="blastp -num_threads $THREAD -max_target_seqs 10 -evalue $EVAL -outfmt 11 \
+cmd="blastp -num_threads $THREAD -max_target_seqs 10 -evalue $REVAL -outfmt 11 \
 -db $QPROT -query $RPROT -out "qry-"$REF"_2_ref-"$QRY"_blastp_e"$REVAL".out.asn""
 # echo $cmd
 eval $cmd
