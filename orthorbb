@@ -37,7 +37,8 @@ OPTIONS:
 EOF
 }
 
-EVAL=0.001
+REVAL=0.001
+OEVAL=1e-5
 THREAD=1
 
 while getopts "hp:a:q:r:e:f:t:" OPTION
