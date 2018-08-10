@@ -5,7 +5,7 @@ usage()
 cat << EOF
 orthorbb
 
-Version 2.0 (8 December, 2017)
+Version 2.1 (2018-05-31)
 License: GNU GPLv2
 To report bugs or errors, please contact Daren Card (dcard@uta.edu).
 This script is provided as-is, with no support and no guarantee of proper or
@@ -18,9 +18,14 @@ relevent settings for the underlying BLAST searches. Query proteins are annotate
 orthologous sequence IDs from a reference protein set inferred using reciprocal best blastp 
 or stringent one-way best blastp to proteins. Proteins are first annotated using reciprocal 
 best blastp, followed stringent one-way blastp. Importantly, users can set a more stringent 
-e-value for the one-way best blastp than what is used in the reciprocal best-blastp. Output 
-files contain relevent information about how homology was inferred and a summary of the 
-annotation is also output.
+e-value for the one-way best blastp than what is used in the reciprocal best-blastp. 
+
+Output files contain relevent information about how homology was inferred and a summary of the 
+annotation is also output. The table of homology matches NCBI BLAST output format #6 overall, 
+with some key notes: (1) "|RBB" or "|OBB" are appended to the reference protein IDs to indicate 
+whether the match is a reciprocal best blastp or one-way best blastp match and (2) percent match, 
+coordinates, e-value, and bitscore for the less confident (i.e., higher e-value) alignment are 
+provided in the case of the reciprocal best blastp.
 
 orthorbb -p <query_proteins> -a <reference_proteins> -q <query_name> -r <reference_name> 
 	 [ -e <RBB_e-value> -f <ONEWAY_e-value> -t <threads> -h ]
@@ -37,8 +42,7 @@ OPTIONS:
 EOF
 }
 
-REVAL=0.001
-OEVAL=1e-5
+EVAL=0.001
 THREAD=1
 
 while getopts "hp:a:q:r:e:f:t:" OPTION
@@ -93,12 +97,12 @@ eval $cmd
 
 echo -e "\n###############################\nRunning BLASTP Searches\n###############################\n"
 # one-way and reciprocal blastp
-cmd="blastp -num_threads $THREAD -max_target_seqs 10 -evalue $REVAL -outfmt 11 \
+cmd="blastp -num_threads $THREAD -max_target_seqs 10 -evalue $EVAL -outfmt 11 \
 -db $RPROT -query $QPROT -out "qry-"$QRY"_2_ref-"$REF"_blastp_e"$REVAL".out.asn""
 # echo $cmd
 eval $cmd
 
-cmd="blastp -num_threads $THREAD -max_target_seqs 10 -evalue $REVAL -outfmt 11 \
+cmd="blastp -num_threads $THREAD -max_target_seqs 10 -evalue $EVAL -outfmt 11 \
 -db $QPROT -query $RPROT -out "qry-"$REF"_2_ref-"$QRY"_blastp_e"$REVAL".out.asn""
 # echo $cmd
 eval $cmd
@@ -133,22 +137,22 @@ echo -e "\n###############################\nSummarizing all BLAST Information\n#
 # command dissection:
 ##  two files are concatenated together, sorted by first column (-k1,1), and then unique lines based on the first column are kept (first column corresponds to query annotation IDs)
 ##  importantly, the order in which the files are read in the 'cat' command dictates which type of hit is kept when the unique rows (based on first column) are selected
-##  therefore, we put the RBB protein first and the RBB transcript second, and whenever they overlap in a query annotation ID, the RBB protein hit is taken
+##  therefore, we put the RBB protein first and the ONEWAY protein second, and whenever they overlap in a query annotation ID, the RBB protein hit is taken
 ##  we do this inside a nested shell ("<(cat....), such that the output of that process is directed into a second 'cat' command, which does the same thing as described above
 ##  this has the effect or prioritizing the results in the order we want, without redundancy in the query annotation IDs, giving us our final inference of homology with detailed information on our confidence in that inference
-cmd="cat <(cat $QRY"_"$REF"_RBB.blastp.e"$REVAL".fmt6.txt" | awk -v OFS=\"\\t\" -v ref=\"\$REF\" '{ print \"RBB\", ref, \$0 }' ) \
-<(cat $QRY"_"$REF"_ONEWAY.blastp.e"$OEVAL".fmt6.txt" | awk -v OFS=\"\\t\" -v ref=\"\$REF\" '{ print \"ONEWAY\", ref, \$0 }') | \
-sort -u -k3,3 > $QRY"_"$REF"_homology_annotation.fmt6.txt""
+cmd="cat <(cat $QRY"_"$REF"_RBB.blastp.e"$REVAL".fmt6.txt" | awk -v OFS=\"\\t\" -v ref=\"\$REF\" '{ print \$1, \$2\"\|RBB\", \$3, \$4, \$5, \$6, \$7, \$8, \$9, \$10, \$11, \$12 }' ) \
+<(cat $QRY"_"$REF"_ONEWAY.blastp.e"$OEVAL".fmt6.txt" | awk -v OFS=\"\\t\" -v ref=\"\$REF\" '{ print \$1, \$2\"\|OBB\", \$3, \$4, \$5, \$6, \$7, \$8, \$9, \$10, \$11, \$12 }') | \
+sort -u -k1,1 > $QRY"_"$REF"_homology_annotation.fmt6.txt""
 # echo $cmd
 eval $cmd
 
 # using context provided in output file, we can summarize how proteins were annotated using the reference
 cmd="cat <(cat $QRY"_"$REF"_homology_annotation.fmt6.txt" | \
-awk '{ if (\$1 == \"RBB\") count1 += 1 } \
-{ if (\$1 == \"ONEWAY\") count2 += 1 } END \
-{ print \"RBB proteins to proteins = \"count1\
-\"\nONEWAY proteins to proteins = \"count2\
-\"\nTotal annotated = \"count1+count2 }') \
+awk ' \$2 ~ /\\\|RBB\$/ { count1 += 1 }; \
+\$2 ~ /\\\|OBB\$/ { count2 += 1 } END \
+{ print \"RBB proteins to proteins = \"count1;
+print \"ONEWAY proteins to proteins = \"count2;
+print \"Total annotated = \"count1+count2 }') \
 <(grep -c \"^>\" $QPROT | awk '{ print \"Total input sequences = \"\$1 }') \
 > $QRY"_"$REF"_homology_annotation.summary.txt""
 # echo $cmd
